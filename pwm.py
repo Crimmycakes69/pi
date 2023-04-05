@@ -1,36 +1,46 @@
 import RPi.GPIO as GPIO
 import time
 
-# Set the pin number that you want to output the PWM signal on
-PWM_PIN = 18
+# Set up GPIO pins
+GPIO.setmode(GPIO.BOARD)
+GPIO.setup(12, GPIO.OUT)  # Pin 12 for PWM1
+GPIO.setup(32, GPIO.OUT)  # Pin 32 for PWM2
 
-# Set the frequency of the PWM signal in Hz
-PWM_FREQ = 1000
+# Set up PWM frequency and duty cycle
+freq = 1000  # 1kHz frequency
+duty_cycle_min = 50  # 50% duty cycle
+duty_cycle_max = 100  # 100% duty cycle
 
-# Set the duty cycle range (in percent) of the PWM signal
-DUTY_CYCLE_RANGE = (50, 100)
+# Create PWM instances
+pwm1 = GPIO.PWM(12, freq)
+pwm2 = GPIO.PWM(32, freq)
 
-# Set the voltage level of the PWM signal (in volts)
-PWM_VOLTAGE = 3.2
+# Start PWM signals
+pwm1.start(duty_cycle_min)
+pwm2.start(duty_cycle_min)
 
-# Set up the GPIO pins
-GPIO.setmode(GPIO.BCM)
-GPIO.setup(PWM_PIN, GPIO.OUT)
+# Set up phase shift
+phase_shift = 0.25  # 90 degrees in terms of duty cycle
+duty_cycle2 = (duty_cycle_min + duty_cycle_max) * phase_shift
 
-# Set up the PWM output
-pwm = GPIO.PWM(PWM_PIN, PWM_FREQ)
-
-# Set the duty cycle range
-pwm.start(DUTY_CYCLE_RANGE[0])
-
-# Loop through the duty cycle range
-while True:
-    for duty_cycle in range(DUTY_CYCLE_RANGE[0], DUTY_CYCLE_RANGE[1]):
-        pwm.ChangeDutyCycle(duty_cycle)
-        time.sleep(0.01)  # sleep for 10ms to allow the duty cycle to settle
-    for duty_cycle in range(DUTY_CYCLE_RANGE[1], DUTY_CYCLE_RANGE[0], -1):
-        pwm.ChangeDutyCycle(duty_cycle)
-        time.sleep(0.01)  # sleep for 10ms to allow the duty cycle to settle
-
-# Set the output voltage level
-GPIO.output(PWM_PIN, PWM_VOLTAGE)
+# Generate PWM signals with phase shift
+try:
+    while True:
+        # PWM1 at 50-100% duty cycle
+        for dc in range(duty_cycle_min, duty_cycle_max + 1):
+            pwm1.ChangeDutyCycle(dc)
+            time.sleep(0.001)
+        
+        # PWM2 at 50-100% duty cycle with phase shift
+        for dc in range(int(duty_cycle2), duty_cycle_max + 1):
+            pwm2.ChangeDutyCycle(dc)
+            time.sleep(0.001)
+        for dc in range(duty_cycle_min, int(duty_cycle2)):
+            pwm2.ChangeDutyCycle(dc)
+            time.sleep(0.001)
+            
+except KeyboardInterrupt:
+    # Clean up GPIO pins
+    pwm1.stop()
+    pwm2.stop()
+    GPIO.cleanup()
