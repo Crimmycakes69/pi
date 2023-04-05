@@ -13,7 +13,7 @@ duty_cycle_max = 100  # 100% duty cycle
 
 # Create PWM instances
 pwm1 = GPIO.PWM(12, freq)
-pwm2 = GPIO.PWM(32, freq)
+pwm2 = GPIO.PWM(13, freq)
 
 # Start PWM signals
 pwm1.start(duty_cycle_min)
