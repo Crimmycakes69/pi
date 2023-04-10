@@ -1,5 +1,5 @@
 import time
-import rgpio
+import rpi.gpio as rpgio
 
 G1=12
 G2=13
