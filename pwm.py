@@ -1,23 +1,24 @@
-import RPi.GPIO as GPIO
 import time
+import rgpio
 
-# Set up GPIO pins
-GPIO.setmode(GPIO.BOARD)
-GPIO.setup(12, GPIO.OUT)  # Pin 12 for PWM1
-GPIO.setup(13, GPIO.OUT)  # Pin 32 for PWM2
+G1=12
+G2=13
 
-# Set up PWM frequency and duty cycle
-freq = 1000  # 1kHz frequency
-dc = 50  # Duty Cycle
+FREQ=1000
+DUTY=50
 
-# Create PWM instances
-pwm1 = GPIO.PWM(12, freq)
-pwm2 = GPIO.PWM(13, freq)
+ON_MICS = int(1e6 / FREQ * DUTY / 100.0)
 
-# Start PWM signals
-pwm1.start(dc)
-pwm2.start(dc2)
+sbc = rgpio.sbc()
+if not sbc.connected:
+   exit()
 
-# Set up phase shift
-shift = 0.25  # 90 degrees shift
-dc2 = (dc) * phase_shift
+h = sbc.gpiochip_open(0) # Pi's main gpiochip
+
+sbc.gpio_claim_output(h, G1) # claim G1 of gpiochip
+sbc.gpio_claim_output(h, G2) # claim G2 of gpiochip
+
+sbc.tx_pwm(h, G1, FREQ, DUTY)
+sbc.tx_pwm(h, G2, FREQ, DUTY, pulse_offset=ON_MICS)
+
+time.sleep(30)
